@@ -1,0 +1,8 @@
+name: maxgreil-rnaseq
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - multiqc=1.6
+  - hisat2=2.2.1

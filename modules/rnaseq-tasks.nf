@@ -1,9 +1,16 @@
-process BUILD_HISAT_INDEX {
+process HISAT {
+  
+  tag "$reads.baseName"
+  
+  input:
+  path(reads)
 
   output:
+  stdout
   
   script:
   """
+  echo ${task.memory} ${task.cpus}
   """
 
 }

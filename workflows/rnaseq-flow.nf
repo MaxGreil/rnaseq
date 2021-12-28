@@ -1,7 +1,7 @@
 /* 
  * include requires tasks 
  */
-include { BUILD_HISAT_INDEX; } from '../modules/rnaseq-tasks.nf'
+include { HISAT; } from '../modules/rnaseq-tasks.nf'
 
 /* 
  * define the data analysis workflow 
@@ -12,15 +12,20 @@ workflow rnaseqFlow {
       reads
     // workflow implementation
     main:
-      if(params.singleEnd){
+      if( params.singleEnd ){
         Channel
-          .fromPath(reads)
+          .fromPath( reads )
           .ifEmpty { exit 1, "${params.reads} was empty - no input files supplied" }
-          .set { fastqgz_ch } 
+          .set { reads_ch } 
       } else {
-        //FilePairs?
+        Channel
+          .fromFilePairs( reads )
+          .ifEmpty { exit 1, "${params.reads} was empty - no input files supplied" }
+          .set { reads_ch } 
       }
       
-      fastqgz_ch.view()
+      HISAT(reads_ch)
+      
+      HISAT.out.view()
       
 }

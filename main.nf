@@ -36,6 +36,6 @@ workflow {
  */
 workflow.onComplete {
 
-    log.info ( workflow.success ? "\nDone! Open the following reports in your browser --> $params.outdir/multiqc_report.html and $params.tracedir/execution_report.html\n" : "Oops .. something went wrong" )
+    log.info ( workflow.success ? "\nDone! Open the following reports in your browser --> $params.tracedir/execution_report.html\n" : "Oops .. something went wrong" )
 
 }

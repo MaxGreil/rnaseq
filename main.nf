@@ -12,11 +12,11 @@ nextflow.enable.dsl=2
 params.outdir = "output"
 
 log.info """\
-         reads:          ${params.reads}
-         hisat2_indices: ${params.hisat2_indices}
-         singleEnd:      ${params.singleEnd}
-         outdir:         ${params.outdir}
-         tracedir:       ${params.tracedir}
+         reads:        ${params.reads}
+         hisat2_index: ${params.hisat2_index}
+         singleEnd:    ${params.singleEnd}
+         outdir:       ${params.outdir}
+         tracedir:     ${params.tracedir}
          """
          .stripIndent()
 

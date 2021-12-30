@@ -1,7 +1,7 @@
 /* 
  * include requires tasks 
  */
-include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2; } from '../modules/rnaseq-tasks.nf'
+include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2; SAMTOOLS; } from '../modules/rnaseq-tasks.nf'
 
 /* 
  * define the data analysis workflow 
@@ -15,24 +15,27 @@ workflow rnaseqFlow {
       if( params.hisat2_index ) {
         Channel
           .fromPath( params.hisat2_index )
-          .ifEmpty { exit 1, "hisat2_index was empty - no input file supplied" }
+          .ifEmpty { exit 1, "hisat2_index - ${params.hisat2_index} was empty - no input file supplied" }
           .set { hisat2_index_ch }
       }
     
       if( params.singleEnd ){
         Channel
           .fromPath( reads )
-          .ifEmpty { exit 1, "reads was empty - no input files supplied" }
-          .set { reads_ch } 
+          .ifEmpty { exit 1, "reads - ${params.reads} was empty - no input files supplied" }
+          .map { file -> tuple(file.simpleName, file) }
+          .set { reads_ch }
       } else {
         Channel
           .fromFilePairs( reads )
-          .ifEmpty { exit 1, "reads was empty - no input files supplied" }
-          .set { reads_ch } 
+          .ifEmpty { exit 1, "reads - ${params.reads} was empty - no input files supplied" }
+          .set { reads_ch }
       }
       
       UNCOMPRESS_GENOTYPE_INDEX(hisat2_index_ch)
 
-      HISAT2(UNCOMPRESS_GENOTYPE_INDEX.out.first(), reads_ch) //value channel, queue channel -> process termination determined by the content of the second channel
+      HISAT2(UNCOMPRESS_GENOTYPE_INDEX.out.first(), reads_ch) //value channel, queue channel -> process termination determined by content of queue channel
+      
+      SAMTOOLS(HISAT2.out)
       
 }

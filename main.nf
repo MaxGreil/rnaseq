@@ -22,6 +22,12 @@ log.info """\
 
 include { rnaseqFlow } from './workflows/rnaseq-flow.nf'
 
+if( !params.reads ) {
+
+  exit 1, "\nPlease give in reads via --reads <location> \n"
+
+}
+
 /*
  * main script flow
  */

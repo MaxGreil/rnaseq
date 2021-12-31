@@ -33,7 +33,7 @@ process HISAT2 {
            --very-sensitive \
            --no-spliced-alignment \
            --downstream-transcriptome-assembly \
-           -x "${hisat2_indexes}/genome" \
+           -x "${hisat2_indexes}/genome_snp_tran" \
            -U $reads \
            > ${meta}.sam
     """
@@ -53,8 +53,8 @@ process HISAT2 {
 }
 
 process SAMTOOLS {
-  publishDir "${params.outdir}", pattern: "${meta}.sorted.bam", mode: 'copy'
-  publishDir "${params.outdir}", pattern: "${meta}.sorted.bam.bai", mode: 'copy'
+  publishDir "${params.outdir}/${meta}", pattern: '*.sorted.bam', mode: 'copy'
+  publishDir "${params.outdir}/${meta}", pattern: '*.sorted.bam.bai', mode: 'copy'
 
   tag "$meta"
   
@@ -62,8 +62,8 @@ process SAMTOOLS {
   tuple val(meta), path(mapped_sam)
   
   output:
-  tuple val(meta), path("${meta}.sorted.bam"), emit: bam
-  tuple val(meta), path("${meta}.sorted.bam.bai"), emit: bai
+  tuple val(meta), path("*.sorted.bam"), emit: bam
+  tuple val(meta), path("*.sorted.bam.bai"), emit: bai
   
   script:
   """
@@ -92,7 +92,10 @@ process UNCOMPRESS_GTF_FILE {
 }
 
 process STRINGTIE {
-  publishDir "${params.outdir}", pattern: "${meta}.transcripts.gtf", mode: 'copy'
+  publishDir "${params.outdir}/${meta}", pattern: '*.transcripts.gtf', mode: 'copy'
+  publishDir "${params.outdir}/${meta}", pattern: '*.gene.abundance.txt', mode: 'copy'
+  publishDir "${params.outdir}/${meta}", pattern: '*.coverage.gtf', mode: 'copy'
+  publishDir "${params.outdir}/${meta}", pattern: '*.ballgown', mode: 'copy'
   
   tag "$meta"
   
@@ -101,13 +104,19 @@ process STRINGTIE {
   tuple val(meta), path(sorted_bam)
   
   output:
-  tuple val(meta), path("${meta}.transcripts.gtf")
+  tuple val(meta), path("*.transcripts.gtf"), emit: transcript_gtf
+  tuple val(meta), path("*.abundance.txt"), emit: abundance
+  tuple val(meta), path("*.coverage.gtf"), emit: coverage_gtf
+  tuple val(meta), path("*.ballgown"), emit: ballgown
   
   script:
   """
   stringtie -p $task.cpus \
             -G $gtf_file_ch \
             -o ${meta}.transcripts.gtf \
+            -A ${meta}.gene.abundance.txt \
+            -C ${meta}.coverage.gtf \
+            -b ${meta}.ballgown \
             -l $meta ${sorted_bam}
   """
 

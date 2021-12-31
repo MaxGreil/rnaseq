@@ -12,6 +12,7 @@ workflow rnaseqFlow {
       reads
     // workflow implementation
     main:
+    
       if( params.hisat2_index ) {
         Channel
           .fromPath( params.hisat2_index )

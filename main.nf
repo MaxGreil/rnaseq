@@ -14,6 +14,7 @@ params.outdir = "output"
 log.info """\
          reads:        ${params.reads}
          hisat2_index: ${params.hisat2_index}
+         gtf_file:     ${params.gtf_file}
          singleEnd:    ${params.singleEnd}
          outdir:       ${params.outdir}
          tracedir:     ${params.tracedir}

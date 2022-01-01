@@ -32,7 +32,6 @@ process HISAT2 {
     hisat2 -p $task.cpus \
            --very-sensitive \
            --no-spliced-alignment \
-           --downstream-transcriptome-assembly \
            -x "${hisat2_indexes}/genome_snp_tran" \
            -U $reads \
            > ${meta}.sam
@@ -42,8 +41,7 @@ process HISAT2 {
     hisat2 -p $task.cpus \
            --very-sensitive \
            --no-spliced-alignment \
-           --downstream-transcriptome-assembly \
-           -x "${hisat2_indexes}/genome" \
+           -x "${hisat2_indexes}/genome_snp_tran" \
            -1 ${reads[0]} \
            -2 ${reads[1]}
            > ${meta}.sam
@@ -62,8 +60,8 @@ process SAMTOOLS {
   tuple val(meta), path(mapped_sam)
   
   output:
-  tuple val(meta), path("*.sorted.bam"), emit: bam
-  tuple val(meta), path("*.sorted.bam.bai"), emit: bai
+  path("*.sorted.bam"), emit: bam
+  path("*.sorted.bam.bai"), emit: bai
   
   script:
   """
@@ -74,50 +72,36 @@ process SAMTOOLS {
 
 }
 
-process UNCOMPRESS_GTF_FILE {
+process FEATURECOUNTS {
+  publishDir "${params.outdir}", pattern: '*.txt', mode: 'copy'
 
-  tag "$gtf_file_ch.simpleName"
-
-  input:
-  file(gtf_file_ch)
-    
-  output:
-  path('*')
-  
-  script:
-  """
-  gzip -d -f $gtf_file_ch
-  """
-
-}
-
-process STRINGTIE {
-  publishDir "${params.outdir}/${meta}", pattern: '*.transcripts.gtf', mode: 'copy'
-  publishDir "${params.outdir}/${meta}", pattern: '*.gene.abundance.txt', mode: 'copy'
-  publishDir "${params.outdir}/${meta}", pattern: '*.coverage.gtf', mode: 'copy'
-  publishDir "${params.outdir}/${meta}", pattern: '*.ballgown', mode: 'copy'
-  
-  tag "$meta"
-  
   input:
   path(gtf_file_ch)
-  tuple val(meta), path(sorted_bam)
+  path(sorted_bam)
   
   output:
-  tuple val(meta), path("*.transcripts.gtf"), emit: transcript_gtf
-  tuple val(meta), path("*.abundance.txt"), emit: abundance
-  tuple val(meta), path("*.coverage.gtf"), emit: coverage_gtf
-  tuple val(meta), path("*.ballgown"), emit: ballgown
+  path("*.txt")
   
   script:
-  """
-  stringtie -p $task.cpus \
-            -G $gtf_file_ch \
-            -o ${meta}.transcripts.gtf \
-            -A ${meta}.gene.abundance.txt \
-            -C ${meta}.coverage.gtf \
-            -b ${meta}.ballgown \
-            -l $meta ${sorted_bam}
-  """
-
+  if(params.singleEnd) {
+    """
+    featureCounts -T $task.cpus \
+                  -t exon \
+                  -g gene_id \
+                  -a $gtf_file_ch \
+                  -o featureCounts_output.txt \
+                  $sorted_bam
+    """
+  } else {
+    """
+    featureCounts -T $task.cpus \
+                  -p \
+                  -t exon \
+                  -g gene_id \
+                  -a $gtf_file_ch \
+                  -o featureCounts_output.txt \
+                  $sorted_bam
+    """
+  
+  }
 }

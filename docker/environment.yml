@@ -6,5 +6,4 @@ channels:
 dependencies:
   - hisat2=2.2.1
   - samtools=1.14
-  - stringtie=2.1.7
-  - multiqc=1.6
+  - subread=2.0.1

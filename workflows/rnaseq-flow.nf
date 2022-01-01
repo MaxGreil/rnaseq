@@ -1,7 +1,7 @@
 /* 
  * include requires tasks 
  */
-include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2; SAMTOOLS; UNCOMPRESS_GTF_FILE; STRINGTIE; } from '../modules/rnaseq-tasks.nf'
+include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2; SAMTOOLS; FEATURECOUNTS; } from '../modules/rnaseq-tasks.nf'
 
 /* 
  * define the data analysis workflow 
@@ -19,7 +19,7 @@ workflow rnaseqFlow {
           .ifEmpty { exit 1, "hisat2_index - ${params.hisat2_index} was empty - no input file supplied" }
           .set { hisat2_index_ch }
       }
-    
+      
       if( params.gtf_file ) {
         Channel
           .fromPath( params.gtf_file )
@@ -46,8 +46,8 @@ workflow rnaseqFlow {
       
       SAMTOOLS(HISAT2.out)
       
-      UNCOMPRESS_GTF_FILE(gtf_file_ch)
+      FEATURECOUNTS(gtf_file_ch, SAMTOOLS.out.bam.collect())
       
-      STRINGTIE(UNCOMPRESS_GTF_FILE.out.first(), SAMTOOLS.out.bam)
+      //data <- read.delim("~/Dokumente/rnaseq/output/featureCounts_output.txt", sep = "\t", header=T, skip=1, row.names="Geneid")
       
 }

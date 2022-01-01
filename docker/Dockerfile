@@ -5,7 +5,7 @@ MAINTAINER Maximilian Greil
 # install graphviz so that Nextflow can render the execution DAG in the required format and
 # deep clean the apt cache to reduce image/layer size
 RUN apt-get update && \
-    DEBIAN_FRONTEND="noninteractive" apt-get install -y wget pigz procps locales graphviz && \
+    DEBIAN_FRONTEND="noninteractive" apt-get install -y wget procps locales graphviz && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/* && \
     # For MultiQC

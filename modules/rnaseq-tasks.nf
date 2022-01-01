@@ -60,8 +60,9 @@ process SAMTOOLS {
   tuple val(meta), path(mapped_sam)
   
   output:
+  val(meta), emit: meta
   path("*.sorted.bam"), emit: bam
-  path("*.sorted.bam.bai"), emit: bai
+  tuple path("*.sorted.bam"), path("*.sorted.bam.bai"), emit: all
   
   script:
   """
@@ -104,4 +105,6 @@ process FEATURECOUNTS {
     """
   
   }
+  
 }
+

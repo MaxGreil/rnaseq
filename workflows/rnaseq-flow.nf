@@ -48,6 +48,8 @@ workflow rnaseqFlow {
       
       FEATURECOUNTS(gtf_file_ch, SAMTOOLS.out.bam.collect())
       
-      //data <- read.delim("~/Dokumente/rnaseq/output/featureCounts_output.txt", sep = "\t", header=T, skip=1, row.names="Geneid")
+      // + Quality control = preseq, rseqc -> MultiQC
+      
+      // data <- read.delim("~/Dokumente/rnaseq/output/featureCounts_output.txt", sep = "\t", header=T, skip=1, row.names="Geneid")
       
 }

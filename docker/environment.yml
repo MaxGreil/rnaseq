@@ -7,3 +7,4 @@ dependencies:
   - hisat2=2.2.1
   - samtools=1.14
   - subread=2.0.1
+  - multiqc=1.6

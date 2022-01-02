@@ -8,4 +8,5 @@ dependencies:
   - samtools=1.14
   - subread=2.0.1
   - fastqc=0.11.8
+  - preseq=2.0.3
   - multiqc=1.6

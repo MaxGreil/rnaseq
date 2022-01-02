@@ -12,5 +12,5 @@ knitr::opts_chunk$set(echo = TRUE)
 ## R Markdown
 
 ```{r}
-data <- read.delim("~/rnaseq/output/featureCounts_output.txt", sep = "\t", header=T, skip=1, row.names="Geneid")
+data <- read.delim("featureCounts_output.txt", sep = "\t", header=T, skip=1, row.names="Geneid")
 ```

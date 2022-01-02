@@ -111,11 +111,54 @@ process FEATURECOUNTS {
   
 }
 
+process PRESEQ {
+  publishDir "${params.outdir}/${meta}", pattern: '*.txt', mode: 'copy'
+
+  tag "${meta}"
+  
+  input:
+  val(meta)
+  tuple path(sorted_bam), path(sorted_bam_bai)
+  
+  output:
+  path("*.txt")
+  
+  script:
+  """
+  preseq c_curve -B -o ${meta}.c_curve.txt \
+           $sorted_bam
+  
+  preseq lc_extrap -B -o ${meta}.lc_extrap.txt \
+           $sorted_bam
+  """
+
+}
+
+process FASTQC {
+
+  tag "${meta}"
+
+  input:
+  val(meta)
+  path(sorted_bam)
+    
+  output:
+  path('*_fastqc.{zip,html,txt}')
+    
+  script:
+  """
+  fastqc -t $task.cpus $sorted_bam
+  """
+
+}
+
 process MULTIQC {
   publishDir "${params.outdir}", mode:'copy'
 
   input:
-  path(saamtools_flagstat)
+  path(samtools_ch)
+  path(preseq_ch)
+  path(fastqc_ch)
   
   output:
   path('multiqc_report.html')

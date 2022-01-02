@@ -52,6 +52,7 @@ process HISAT2 {
 
 process SAMTOOLS {
   publishDir "${params.outdir}/${meta}", pattern: '*.sorted.bam', mode: 'copy'
+  publishDir "${params.outdir}/${meta}", pattern: '*.sorted.bam.flagstat', mode: 'copy'
   publishDir "${params.outdir}/${meta}", pattern: '*.sorted.bam.bai', mode: 'copy'
 
   tag "$meta"
@@ -62,12 +63,14 @@ process SAMTOOLS {
   output:
   val(meta), emit: meta
   path("*.sorted.bam"), emit: bam
+  path("*.sorted.bam.flagstat"), emit: flagstat
   tuple path("*.sorted.bam"), path("*.sorted.bam.bai"), emit: all
   
   script:
   """
   samtools view -@ ${task.cpus} -bS -o ${meta}.bam ${mapped_sam}
   samtools sort -@ ${task.cpus} ${meta}.bam > ${meta}.sorted.bam
+  samtools flagstat ${meta}.sorted.bam > ${meta}.sorted.bam.flagstat
   samtools index ${meta}.sorted.bam ${meta}.sorted.bam.bai
   """
 
@@ -106,5 +109,21 @@ process FEATURECOUNTS {
   
   }
   
+}
+
+process MULTIQC {
+  publishDir "${params.outdir}", mode:'copy'
+
+  input:
+  path(saamtools_flagstat)
+  
+  output:
+  path('multiqc_report.html')
+
+  script:
+  """
+  multiqc .
+  """
+
 }
 

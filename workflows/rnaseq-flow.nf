@@ -1,7 +1,7 @@
 /* 
  * include requires tasks 
  */
-include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2; SAMTOOLS; FEATURECOUNTS; } from '../modules/rnaseq-tasks.nf'
+include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2; SAMTOOLS; FEATURECOUNTS; MULTIQC; } from '../modules/rnaseq-tasks.nf'
 
 /* 
  * define the data analysis workflow 
@@ -48,8 +48,8 @@ workflow rnaseqFlow {
       
       FEATURECOUNTS(gtf_file_ch, SAMTOOLS.out.bam.collect())
       
-      // + Quality control = preseq, rseqc -> MultiQC
+      MULTIQC(SAMTOOLS.out.flagstat.collect())
       
-      // data <- read.delim("~/Dokumente/rnaseq/output/featureCounts_output.txt", sep = "\t", header=T, skip=1, row.names="Geneid")
+      // + Quality control = samtools(flagstat), fastqc, preseq, rseqc, picard (quality metrics) -> MultiQC
       
 }

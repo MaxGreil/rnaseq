@@ -1,0 +1,16 @@
+---
+title: "RNASeq_Analysis"
+author: "Maximilian Greil"
+date: "2 1 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+data <- read.delim("~/rnaseq/output/featureCounts_output.txt", sep = "\t", header=T, skip=1, row.names="Geneid")
+```

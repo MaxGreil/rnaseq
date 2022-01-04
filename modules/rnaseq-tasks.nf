@@ -26,7 +26,7 @@ process HISAT2_TO_BAM {
 
   output:
   tuple val(meta), path("*.bam"), emit: bam
-  path("*.log")
+  path("*.log"), emit: log
   
   script:
   if(params.singleEnd) {
@@ -66,10 +66,9 @@ process SAMTOOLS {
   tuple val(meta), path(bam)
   
   output:
-  val(meta), emit: meta
   path("*.sorted.bam"), emit: bam
   path("*.sorted.bam.flagstat"), emit: flagstat
-  path("*.sorted.bam.bai"), emit: bai
+  tuple path("*.sorted.bam"), path("*.sorted.bam.bai"), emit: qc
   
   script:
   """
@@ -116,80 +115,77 @@ process FEATURECOUNTS {
 }
 
 process PRESEQ {
-  publishDir "${params.outdir}/${meta}", pattern: '*.txt', mode: 'copy'
+  publishDir "${params.outdir}/${sorted_bam.simpleName}", pattern: '*.txt', mode: 'copy'
 
-  tag "${meta}"
+  tag "$sorted_bam.simpleName"
   
   input:
-  val(meta)
-  path(sorted_bam)
-  path(sorted_bam_bai)
+  tuple path(sorted_bam), path(sorted_bam_bai)
   
   output:
   path("*.txt")
   
   script:
   """
-  preseq c_curve -B -o ${meta}.c_curve.txt \
+  preseq c_curve -B -o ${sorted_bam.simpleName}.c_curve.txt \
            $sorted_bam
   
-  preseq lc_extrap -B -o ${meta}.lc_extrap.txt \
+  preseq lc_extrap -B -o ${sorted_bam.simpleName}.lc_extrap.txt \
            $sorted_bam
+  """
+
+}
+
+process UNCOMPRESS_BED {
+
+  tag "$bed_file_ch.simpleName"
+
+  input:
+  path(bed_file_ch)
+  
+  output:
+  path('*')
+  
+  script:
+  """
+  gunzip -d -f $bed_file_ch
   """
 
 }
 
 process RSEQC {
 
-  tag "${meta}"
+  tag "$sorted_bam.simpleName"
   
   input:
-  path(gff3_file_ch)
-  val(meta)
-  path(sorted_bam)
-  path(sorted_bam_bai)
+  path(bed_file_ch)
+  tuple path(sorted_bam), path(sorted_bam_bai)
   
   output:
   path("*.{txt,pdf,r,xls}")
   
   script:
   """
-  zcat $gff3_file_ch \
-  | head -n-5 \
-  | convert2bed --input=gff - > ${gff3_file_ch.baseName}.bed
-  
-  read_distribution.py -i ${sorted_bam} \
-                       -r ${gff3_file_ch.baseName}.bed \
-                        > ${meta}.read_dist.txt
 
-  read_duplication.py -i ${sorted_bam} \
-                      -o ${meta}.read_duplication
+  read_distribution.py -i $sorted_bam \
+                       -r $bed_file_ch \
+                        > ${sorted_bam.simpleName}.read_dist.txt
 
-  infer_experiment.py -i ${sorted_bam} \
-                      -r ${gff3_file_ch.baseName}.bed \
-                       > ${meta}.infer_experiment.txt
-  """
+  read_duplication.py -i $sorted_bam \
+                      -o ${sorted_bam.simpleName}.read_duplication
 
-}
-
-process PICARD {
-
-  input:
-  
-  output:
-  
-  script:
-  """
+  infer_experiment.py -i $sorted_bam \
+                      -r $bed_file_ch \
+                       > ${sorted_bam.simpleName}.infer_experiment.txt
   """
 
 }
 
 process FASTQC {
-
-  tag "${meta}"
-
+  
+  tag "$sorted_bam.simpleName"
+  
   input:
-  val(meta)
   path(sorted_bam)
     
   output:
@@ -206,6 +202,7 @@ process MULTIQC {
   publishDir "${params.outdir}", mode:'copy'
 
   input:
+  path(hisat2_ch)
   path(fastqc_ch)
   path(samtools_ch)
   path(preseq_ch)

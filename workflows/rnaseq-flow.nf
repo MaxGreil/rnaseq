@@ -1,7 +1,7 @@
 /* 
  * include requires tasks 
  */
-include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2_TO_BAM; SAMTOOLS; FEATURECOUNTS; PRESEQ; RSEQC; PICARD; FASTQC; MULTIQC; } from '../modules/rnaseq-tasks.nf'
+include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2_TO_BAM; SAMTOOLS; FEATURECOUNTS; PRESEQ; UNCOMPRESS_BED; RSEQC; FASTQC; MULTIQC; } from '../modules/rnaseq-tasks.nf'
 
 /* 
  * define the data analysis workflow 
@@ -27,13 +27,13 @@ workflow rnaseqFlow {
           .set { gtf_file_ch }
       }
       
-       if( params.gff3_file ) {
+      if( params.bed_file ) {
         Channel
-          .fromPath( params.gff3_file )
-          .ifEmpty { exit 1, "gff3_file - ${params.gff3_file} was empty - no input file supplied" }
-          .set { gff3_file_ch }
+          .fromPath( params.bed_file )
+          .ifEmpty { exit 1, "bed_file - ${params.bed_file} was empty - no input file supplied" }
+          .set { bed_file_ch }
       }
-    
+      
       if( params.singleEnd ){
         Channel
           .fromPath( reads )
@@ -55,14 +55,14 @@ workflow rnaseqFlow {
       
       FEATURECOUNTS(gtf_file_ch, SAMTOOLS.out.bam.collect())
       
-      // + picard (quality metrics) -> MultiQC
+      PRESEQ(SAMTOOLS.out.qc)
       
-      PRESEQ(SAMTOOLS.out.meta, SAMTOOLS.out.bam, SAMTOOLS.out.bai)
+      UNCOMPRESS_BED(bed_file_ch)
       
-      RSEQC(gff3_file_ch.first(), SAMTOOLS.out.meta, SAMTOOLS.out.bam, SAMTOOLS.out.bai)
+      RSEQC(UNCOMPRESS_BED.out.first(), SAMTOOLS.out.qc)
       
-      FASTQC(SAMTOOLS.out.meta, SAMTOOLS.out.bam)
+      FASTQC(SAMTOOLS.out.bam)
       
-      MULTIQC(FASTQC.out.collect(), SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), RSEQC.out.collect())
+      MULTIQC(HISAT2_TO_BAM.out.log.collect(), FASTQC.out.collect(), SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), RSEQC.out.collect())
       
 }

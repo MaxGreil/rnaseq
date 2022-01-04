@@ -16,7 +16,7 @@ log.info """\
          reads:        ${params.reads}
          hisat2_index: ${params.hisat2_index}
          gtf_file:     ${params.gtf_file}
-         gff3_file:    ${params.gff3_file}
+         bed_file:     ${params.bed_file}
          singleEnd:    ${params.singleEnd}
          outdir:       ${params.outdir}
          tracedir:     ${params.tracedir}

@@ -15,7 +15,8 @@ process UNCOMPRESS_GENOTYPE_INDEX {
 
 }
 
-process HISAT2 {
+process HISAT2_TO_BAM {
+  publishDir "${params.outdir}/${meta}", pattern: '*.log', mode: 'copy'
   
   tag "$meta"
   
@@ -24,7 +25,8 @@ process HISAT2 {
   tuple val(meta), path(reads)
 
   output:
-  tuple val(meta), path('*.sam')
+  tuple val(meta), path("*.bam"), emit: bam
+  path("*.log")
   
   script:
   if(params.singleEnd) {
@@ -32,19 +34,22 @@ process HISAT2 {
     hisat2 -p $task.cpus \
            --very-sensitive \
            --no-spliced-alignment \
+           --summary-file ${meta}.hisat2.summary.log \
            -x "${hisat2_indexes}/genome_snp_tran" \
            -U $reads \
-           > ${meta}.sam
+            | samtools view -@ ${task.cpus} -bS - > ${meta}.bam
+           
     """
   } else {
     """
     hisat2 -p $task.cpus \
            --very-sensitive \
            --no-spliced-alignment \
+           --summary-file ${meta}.hisat2.summary.log \
            -x "${hisat2_indexes}/genome_snp_tran" \
            -1 ${reads[0]} \
-           -2 ${reads[1]}
-           > ${meta}.sam
+           -2 ${reads[1]} \
+            | samtools view -@ ${task.cpus} -bS - > ${meta}.bam
     """
   }
 
@@ -58,18 +63,17 @@ process SAMTOOLS {
   tag "$meta"
   
   input:
-  tuple val(meta), path(mapped_sam)
+  tuple val(meta), path(bam)
   
   output:
   val(meta), emit: meta
   path("*.sorted.bam"), emit: bam
   path("*.sorted.bam.flagstat"), emit: flagstat
-  tuple path("*.sorted.bam"), path("*.sorted.bam.bai"), emit: all
+  path("*.sorted.bam.bai"), emit: bai
   
   script:
   """
-  samtools view -@ ${task.cpus} -bS -o ${meta}.bam ${mapped_sam}
-  samtools sort -@ ${task.cpus} ${meta}.bam > ${meta}.sorted.bam
+  samtools sort -@ ${task.cpus} $bam > ${meta}.sorted.bam
   samtools flagstat ${meta}.sorted.bam > ${meta}.sorted.bam.flagstat
   samtools index ${meta}.sorted.bam ${meta}.sorted.bam.bai
   """
@@ -118,7 +122,8 @@ process PRESEQ {
   
   input:
   val(meta)
-  tuple path(sorted_bam), path(sorted_bam_bai)
+  path(sorted_bam)
+  path(sorted_bam_bai)
   
   output:
   path("*.txt")
@@ -130,6 +135,51 @@ process PRESEQ {
   
   preseq lc_extrap -B -o ${meta}.lc_extrap.txt \
            $sorted_bam
+  """
+
+}
+
+process RSEQC {
+
+  tag "${meta}"
+  
+  input:
+  path(gff3_file_ch)
+  val(meta)
+  path(sorted_bam)
+  path(sorted_bam_bai)
+  
+  output:
+  path("*.{txt,pdf,r,xls}")
+  
+  script:
+  """
+  zcat $gff3_file_ch \
+  | head -n-5 \
+  | convert2bed --input=gff - > ${gff3_file_ch.baseName}.bed
+  
+  read_distribution.py -i ${sorted_bam} \
+                       -r ${gff3_file_ch.baseName}.bed \
+                        > ${meta}.read_dist.txt
+
+  read_duplication.py -i ${sorted_bam} \
+                      -o ${meta}.read_duplication
+
+  infer_experiment.py -i ${sorted_bam} \
+                      -r ${gff3_file_ch.baseName}.bed \
+                       > ${meta}.infer_experiment.txt
+  """
+
+}
+
+process PICARD {
+
+  input:
+  
+  output:
+  
+  script:
+  """
   """
 
 }
@@ -156,10 +206,11 @@ process MULTIQC {
   publishDir "${params.outdir}", mode:'copy'
 
   input:
+  path(fastqc_ch)
   path(samtools_ch)
   path(preseq_ch)
-  path(fastqc_ch)
-  
+  path(rseqc_ch)
+
   output:
   path('multiqc_report.html')
 

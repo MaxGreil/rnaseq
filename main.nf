@@ -9,12 +9,14 @@ nextflow.enable.dsl=2
  * Default pipeline parameters. They can be overriden on the command line eg.
  * given `params.foo` specify on the run command line `--foo some_value`.
  */
+params.reads = "$baseDir/data/*.fastq.gz" //default: "$baseDir/data/*.fastq.gz" + params.singleEnd = true, alternative: "$baseDir/data/*_{1,2}*.fastq.gz" + params.singleEnd = false
 params.outdir = "output"
 
 log.info """\
          reads:        ${params.reads}
          hisat2_index: ${params.hisat2_index}
          gtf_file:     ${params.gtf_file}
+         gff3_file:    ${params.gff3_file}
          singleEnd:    ${params.singleEnd}
          outdir:       ${params.outdir}
          tracedir:     ${params.tracedir}
@@ -43,6 +45,6 @@ workflow {
  */
 workflow.onComplete {
 
-    log.info ( workflow.success ? "\nDone! Open the following reports in your browser --> $params.tracedir/execution_report.html\n" : "Oops .. something went wrong" )
+    log.info ( workflow.success ? "\nDone! Open the following reports in your browser --> $params.outdir/multiqc_report.html and $params.tracedir/execution_report.html\n" : "Oops .. something went wrong" )
 
 }

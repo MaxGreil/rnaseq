@@ -1,7 +1,7 @@
 /* 
  * include requires tasks 
  */
-include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2; SAMTOOLS; FEATURECOUNTS; PRESEQ; FASTQC; MULTIQC; } from '../modules/rnaseq-tasks.nf'
+include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2_TO_BAM; SAMTOOLS; FEATURECOUNTS; PRESEQ; RSEQC; PICARD; FASTQC; MULTIQC; } from '../modules/rnaseq-tasks.nf'
 
 /* 
  * define the data analysis workflow 
@@ -26,6 +26,13 @@ workflow rnaseqFlow {
           .ifEmpty { exit 1, "gtf_file - ${params.gtf_file} was empty - no input file supplied" }
           .set { gtf_file_ch }
       }
+      
+       if( params.gff3_file ) {
+        Channel
+          .fromPath( params.gff3_file )
+          .ifEmpty { exit 1, "gff3_file - ${params.gff3_file} was empty - no input file supplied" }
+          .set { gff3_file_ch }
+      }
     
       if( params.singleEnd ){
         Channel
@@ -42,18 +49,20 @@ workflow rnaseqFlow {
       
       UNCOMPRESS_GENOTYPE_INDEX(hisat2_index_ch)
 
-      HISAT2(UNCOMPRESS_GENOTYPE_INDEX.out.first(), reads_ch) // value channel, queue channel -> process termination determined by content of queue channel
+      HISAT2_TO_BAM(UNCOMPRESS_GENOTYPE_INDEX.out.first(), reads_ch) // value channel, queue channel -> process termination determined by content of queue channel
       
-      SAMTOOLS(HISAT2.out)
+      SAMTOOLS(HISAT2_TO_BAM.out.bam)
       
       FEATURECOUNTS(gtf_file_ch, SAMTOOLS.out.bam.collect())
       
-      // + Quality control = samtools (flagstat), fastqc, preseq, rseqc, picard (quality metrics) -> MultiQC
+      // + picard (quality metrics) -> MultiQC
       
-      PRESEQ(SAMTOOLS.out.meta, SAMTOOLS.out.all)
+      PRESEQ(SAMTOOLS.out.meta, SAMTOOLS.out.bam, SAMTOOLS.out.bai)
+      
+      RSEQC(gff3_file_ch.first(), SAMTOOLS.out.meta, SAMTOOLS.out.bam, SAMTOOLS.out.bai)
       
       FASTQC(SAMTOOLS.out.meta, SAMTOOLS.out.bam)
       
-      MULTIQC(SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), FASTQC.out.collect())
+      MULTIQC(FASTQC.out.collect(), SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), RSEQC.out.collect())
       
 }

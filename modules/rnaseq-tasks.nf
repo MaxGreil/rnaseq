@@ -80,14 +80,14 @@ process SAMTOOLS {
 }
 
 process FEATURECOUNTS {
-  publishDir "${params.outdir}", pattern: '*.txt', mode: 'copy'
+  publishDir "${params.outdir}", pattern: '*.txt.gz', mode: 'copy'
 
   input:
   path(gtf_file_ch)
   path(sorted_bam)
   
   output:
-  path("*.txt")
+  path("*.txt.gz")
   
   script:
   if(params.singleEnd) {
@@ -98,6 +98,8 @@ process FEATURECOUNTS {
                   -a $gtf_file_ch \
                   -o featureCounts_output.txt \
                   $sorted_bam
+                  
+    pigz -p $task.cpus featureCounts_output.txt
     """
   } else {
     """
@@ -108,6 +110,8 @@ process FEATURECOUNTS {
                   -a $gtf_file_ch \
                   -o featureCounts_output.txt \
                   $sorted_bam
+                  
+    pigz -p $task.cpus featureCounts_output.txt
     """
   
   }
@@ -154,6 +158,7 @@ process UNCOMPRESS_BED {
 }
 
 process RSEQC {
+  publishDir "${params.outdir}/${sorted_bam.simpleName}", pattern: "*.{txt,pdf,r,xls}", mode: 'copy'
 
   tag "$sorted_bam.simpleName"
   

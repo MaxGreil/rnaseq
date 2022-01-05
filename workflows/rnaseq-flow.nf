@@ -55,14 +55,14 @@ workflow rnaseqFlow {
       
       FEATURECOUNTS(gtf_file_ch, SAMTOOLS.out.bam.collect())
       
-      PRESEQ(SAMTOOLS.out.qc)
+      //PRESEQ(SAMTOOLS.out.qc)
       
-      UNCOMPRESS_BED(bed_file_ch)
+      //UNCOMPRESS_BED(bed_file_ch)
       
-      RSEQC(UNCOMPRESS_BED.out.first(), SAMTOOLS.out.qc)
+      //RSEQC(UNCOMPRESS_BED.out.first(), SAMTOOLS.out.qc)
       
-      FASTQC(SAMTOOLS.out.bam)
+      //FASTQC(SAMTOOLS.out.bam)
       
-      MULTIQC(HISAT2_TO_BAM.out.log.collect(), FASTQC.out.collect(), SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), RSEQC.out.collect())
+      //MULTIQC(HISAT2_TO_BAM.out.log.collect(), FASTQC.out.collect(), SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), RSEQC.out.collect())
       
 }

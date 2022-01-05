@@ -6,11 +6,40 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
 ```
 
-## R Markdown
+```{r}
+# Load libraries
+
+suppressMessages(library(DESeq2))
+suppressMessages(library(tidyverse))
+```
+
+## SRA SRP055103
 
 ```{r}
-data <- read.delim("featureCounts_output.txt", sep = "\t", header=T, skip=1, row.names="Geneid")
+data <- read_delim("featureCounts_output.txt.gz", delim="\t", skip=1)
+data <- as.data.frame(data)
+
+rownames(data) <- data[, 1]
+data <- data[, -1]
+data <- data[, c(6:11)]
+
+colnames(data) <- gsub("\\.sorted.bam$", "", colnames(data))
+
+data <- data[, order(names(data))]
+
+data <- as.matrix(data)
+head(data)
+
+# Assign condition
+condition <- factor(c("low", "low", "low", "high", "high", "high"), levels = c("high","low"))
+```
+
+```{r}
+
+
 ```

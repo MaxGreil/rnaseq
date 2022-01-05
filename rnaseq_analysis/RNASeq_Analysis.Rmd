@@ -16,9 +16,24 @@ knitr::opts_chunk$set(warning = FALSE)
 
 suppressMessages(library(DESeq2))
 suppressMessages(library(tidyverse))
+suppressMessages(library(DT))
+suppressMessages(library(AnnotationDbi))
+suppressMessages(library(EnsDb.Hsapiens.v86))
+suppressMessages(library(PoiClaClu))
+suppressMessages(library(pheatmap))
+suppressMessages(library(RColorBrewer))
+suppressMessages(library(EnhancedVolcano))
+suppressMessages(library(msigdbr))
+suppressMessages(library(clusterProfiler))
+suppressMessages(library(ggpubr))
+
 ```
 
-## SRA SRP055103
+## 0) Load and prepare data
+
+### 0.1) Data overview
+
+SRA SRP055103
 
 ```{r}
 data <- read_delim("featureCounts_output.txt.gz", delim="\t", skip=1)
@@ -33,13 +48,71 @@ colnames(data) <- gsub("\\.sorted.bam$", "", colnames(data))
 data <- data[, order(names(data))]
 
 data <- as.matrix(data)
-head(data)
-
-# Assign condition
-condition <- factor(c("low", "low", "low", "high", "high", "high"), levels = c("high","low"))
 ```
+
+### 0.1) First look at data
 
 ```{r}
-
-
+datatable(head(data), options=list(scrollX = TRUE, scrollY = TRUE), caption = 'Test', class = 'cell-border stripe')
 ```
+
+## 1) Exploratory analyis and visualization
+
+### 1.1) Create a PCA plot colored by the condition of interest
+
+### 1.2) Heatmap of Poisson distances between samples
+
+```{r}
+condition <- factor(c("low", "low", "low", "high", "high", "high"), levels = c("high","low")) %>% relevel(.$condition, ref = "low")
+
+coldata <- data.frame(row.names=colnames(data), condition)
+
+dds <- DESeqDataSetFromMatrix(countData=data, colData=coldata, design= ~ condition)
+
+dds <- DESeq(dds)
+```
+
+## 2) Differential expression analysis
+
+### 2.1) Calculation of DEGs using <code>DESeq2</code>
+
+```{r}
+res <- results(dds)
+
+resNorm <- lfcShrink(dds = dds, res = res, type = "normal", coef = 2)
+
+# Make a DF
+resdf <- as.data.frame(resNorm)
+
+# convert ENSG to gene symbol
+ens2sym <- AnnotationDbi::select(EnsDb.Hsapiens.v86, keys = keys(EnsDb.Hsapiens.v86),
+                                 columns = "SYMBOL")
+
+# wrangle the resdf and join with ens2sym map
+resdf <- resdf %>%
+  rownames_to_column() %>%
+  mutate(GENEID = gsub(rowname, pattern = "\\..+", replacement = "")) %>%
+  inner_join(y = ens2sym, by = "GENEID")
+
+resdf <- column_to_rownames(resdf, var = "rowname")
+
+over_expressed_genes <- resdf %>%
+  dplyr::filter(padj < .01 & abs(log2FoldChange) >= 1 & baseMean >= 20)
+
+## Ordered DEGs from strongest downregulation to upregulation
+datatable(as.data.frame(over_expressed_genes[order(over_expressed_genes$log2FoldChange),]), options=list(scrollX = TRUE, scrollY = TRUE), caption = 'Table 2: Significant DEGs', class = 'cell-border stripe')
+```
+
+## 3) Plotting results
+
+### 3.1) MA plot
+
+### 3.2) Create a Volcano Plot
+
+## 4) Heatmap showing the top 20 over- and under-expressed DEGs
+
+## 5) Top 5 pathways of <code>GSEA</code> of DEGs
+
+### 5.1) Top 5 over-expressed pathways
+
+### 5.2) Top 5 under-expressed pathways

@@ -94,8 +94,10 @@ cd docker && docker image build . -t maxgreil/rnaseq
 ## Arguments
 
 ### Optional Arguments
+
 | Argument  | Usage                            | Description                                                          |
 |-----------|----------------------------------|----------------------------------------------------------------------|
+| --reads| \<files\>                           | Directory and glob pattern of input files|
 | --outdir  | \<folder\>                       | Directory to save output files                                    |
 
 ## Documentation
@@ -115,6 +117,6 @@ and processes data using the following steps:
 2. [samtools](http://www.htslib.org/) - create sorted BAM files from HISAT2 SAM files
 3. [featureCounts](http://subread.sourceforge.net/) - count mapped reads to genomic features (exons)
 4. [preseq](http://smithlabresearch.org/software/preseq/) -  predict and estimate the complexity of genomic sequencing library
-5. [reseqc](http://rseqc.sourceforge.net/) -  comprehensive evaluation of used RNA-Seq data
+5. [reseqc](http://rseqc.sourceforge.net/) - comprehensive evaluation of used RNA-Seq data
 6. [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) - BAM quality control
 7. [MultiQC](https://multiqc.info) - aggregate report, describing results of the whole pipeline

@@ -1,6 +1,6 @@
 # rnaseq
 
-Proof of concept of a RNA-Seq pipeline from reads to count matrix for subsequent analysis (including quality control) with Nextflow.
+Proof of concept of a RNA-Seq pipeline from reads to count matrix (including quality control) with Nextflow and subsequent RNA-Seq analysis in R.
 
 ## Prerequisites
 

@@ -100,6 +100,7 @@ process PICARD {
   """
   picard -Xmx${avail_mem}g \
          MarkDuplicates \
+		 ASSUME_SORTED=true \
          I=$sorted_bam \
          O=${$sorted_bam.simpleName}.sorted.bam \
          M=${$sorted_bam.simpleName}.MarkDuplicates.metrics.txt
@@ -118,6 +119,7 @@ process FEATURECOUNTS {
   path("*.txt.gz")
   
   script:
+  // ignoreDup = reads that were marked as duplicates will be ignored
   if(params.singleEnd) {
     """
     featureCounts -T $task.cpus \
@@ -125,6 +127,7 @@ process FEATURECOUNTS {
                   -g gene_id \
                   -a $gtf_file_ch \
                   -o featureCounts_output.txt \
+				  --ignoreDup \
                   $sorted_bam
                   
     pigz -p $task.cpus featureCounts_output.txt
@@ -137,6 +140,7 @@ process FEATURECOUNTS {
                   -g gene_id \
                   -a $gtf_file_ch \
                   -o featureCounts_output.txt \
+				  --ignoreDup \
                   $sorted_bam
                   
     pigz -p $task.cpus featureCounts_output.txt

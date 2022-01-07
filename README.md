@@ -105,7 +105,7 @@ cd docker && docker image build . -t maxgreil/rnaseq
 This pipeline is designed to:
 
 * map given reads to a genome
-* create a count matrix of mapped reads for subsequent RNA-Seq analysis
+* create a count matrix of mapped reads for subsequent RNA-Seq analysis in R
 * do a quality control of the created files
 
 ### Pipeline overview
@@ -115,8 +115,9 @@ and processes data using the following steps:
 
 1. [hisat2](http://daehwankimlab.github.io/hisat2/) - map given reads to genome
 2. [samtools](http://www.htslib.org/) - create sorted BAM files from HISAT2 SAM files
-3. [featureCounts](http://subread.sourceforge.net/) - count mapped reads to genomic features (exons)
-4. [preseq](http://smithlabresearch.org/software/preseq/) -  predict and estimate the complexity of genomic sequencing library
-5. [reseqc](http://rseqc.sourceforge.net/) - comprehensive evaluation of used RNA-Seq data
-6. [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) - BAM quality control
-7. [MultiQC](https://multiqc.info) - aggregate report, describing results of the whole pipeline
+3. [picard](https://broadinstitute.github.io/picard/) - mark duplicates in sorted BAM files
+4. [featureCounts](http://subread.sourceforge.net/) - count mapped reads to genomic features (exons)
+5. [preseq](http://smithlabresearch.org/software/preseq/) -  predict and estimate the complexity of genomic sequencing library
+6. [reseqc](http://rseqc.sourceforge.net/) - comprehensive evaluation of used RNA-Seq data
+7. [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) - BAM file quality control
+8. [MultiQC](https://multiqc.info) - aggregate report, describing results of the whole pipeline

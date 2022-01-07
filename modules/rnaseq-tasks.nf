@@ -29,6 +29,7 @@ process HISAT2_TO_BAM {
   path("*.log"), emit: log
   
   script:
+  // http://broadinstitute.github.io/picard/explain-flags.html -> -F = remove, 4 = read unmapped, 8 = mate unmapped, 256 = not primary alignment
   if(params.singleEnd) {
     """
     hisat2 -p $task.cpus \
@@ -37,7 +38,7 @@ process HISAT2_TO_BAM {
            --summary-file ${meta}.hisat2.summary.log \
            -x "${hisat2_indexes}/genome_snp_tran" \
            -U $reads \
-            | samtools view -@ ${task.cpus} -bS - > ${meta}.bam
+            | samtools view -@ ${task.cpus} -bS -F 4 -F 256 - > ${meta}.bam
            
     """
   } else {
@@ -49,7 +50,7 @@ process HISAT2_TO_BAM {
            -x "${hisat2_indexes}/genome_snp_tran" \
            -1 ${reads[0]} \
            -2 ${reads[1]} \
-            | samtools view -@ ${task.cpus} -bS - > ${meta}.bam
+            | samtools view -@ ${task.cpus} -bS -F 4 -F 8 -F 256 - > ${meta}.bam
     """
   }
 
@@ -75,6 +76,33 @@ process SAMTOOLS {
   samtools sort -@ ${task.cpus} $bam > ${meta}.sorted.bam
   samtools flagstat ${meta}.sorted.bam > ${meta}.sorted.bam.flagstat
   samtools index ${meta}.sorted.bam ${meta}.sorted.bam.bai
+  """
+
+}
+
+process PICARD {
+  tag "$sorted_bam.simpleName"
+
+  input:
+  path(sorted_bam)
+  
+  output:
+  path("*.sorted.bam"), emit: bam
+  path("*.metrics.txt"), emit: metrics
+  
+  script:
+  def avail_mem = 3
+  if (!task.memory) {
+    log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
+  } else {
+      avail_mem = task.memory.giga
+  }
+  """
+  picard -Xmx${avail_mem}g \
+         MarkDuplicates \
+         I=$sorted_bam \
+         O=${$sorted_bam.simpleName}.sorted.bam \
+         M=${$sorted_bam.simpleName}.MarkDuplicates.metrics.txt
   """
 
 }
@@ -208,6 +236,7 @@ process MULTIQC {
 
   input:
   path(hisat2_ch)
+  path(picard_ch)
   path(fastqc_ch)
   path(samtools_ch)
   path(preseq_ch)

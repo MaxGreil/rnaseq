@@ -1,7 +1,7 @@
 /*
  * include requires tasks
  */
-include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2_TO_BAM; SAMTOOLS; FEATURECOUNTS; PRESEQ; UNCOMPRESS_BED; RSEQC; FASTQC; MULTIQC; } from '../modules/rnaseq-tasks.nf'
+include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2_TO_BAM; SAMTOOLS; PICARD; FEATURECOUNTS; PRESEQ; UNCOMPRESS_BED; RSEQC; FASTQC; MULTIQC; } from '../modules/rnaseq-tasks.nf'
 
 /*
  * define the data analysis workflow
@@ -52,8 +52,10 @@ workflow rnaseqFlow {
       HISAT2_TO_BAM(UNCOMPRESS_GENOTYPE_INDEX.out.first(), reads_ch) // value channel, queue channel -> process termination determined by content of queue channel
 
       SAMTOOLS(HISAT2_TO_BAM.out.bam)
+      
+      PICARD(SAMTOOLS.out.bam)
 
-      FEATURECOUNTS(gtf_file_ch, SAMTOOLS.out.bam.collect())
+      FEATURECOUNTS(gtf_file_ch, PICARD.out.bam.collect())
 
       PRESEQ(SAMTOOLS.out.qc)
 
@@ -63,6 +65,6 @@ workflow rnaseqFlow {
 
       FASTQC(SAMTOOLS.out.bam)
 
-      MULTIQC(HISAT2_TO_BAM.out.log.collect(), FASTQC.out.collect(), SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), RSEQC.out.collect())
+      MULTIQC(HISAT2_TO_BAM.out.log.collect(), PICARD.out.metrics.collect(), FASTQC.out.collect(), SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), RSEQC.out.collect())
 
 }

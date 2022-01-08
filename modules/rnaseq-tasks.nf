@@ -52,6 +52,7 @@ process HISAT2_TO_BAM {
            -2 ${reads[1]} \
             | samtools view -@ ${task.cpus} -bS -F 4 -F 8 -F 256 - > ${meta}.bam
     """
+  
   }
 
 }
@@ -81,6 +82,8 @@ process SAMTOOLS {
 }
 
 process PICARD {
+  publishDir "${params.outdir}/${sorted_bam.simpleName}", pattern: '*.metrics.txt', mode: 'copy'
+  
   tag "$sorted_bam.simpleName"
 
   input:
@@ -95,12 +98,12 @@ process PICARD {
   if (!task.memory) {
     log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
   } else {
-      avail_mem = task.memory.giga
+    avail_mem = task.memory.giga
   }
   """
   picard -Xmx${avail_mem}g \
          MarkDuplicates \
-		 ASSUME_SORTED=true \
+         ASSUME_SORTED=true \
          I=$sorted_bam \
          O=${$sorted_bam.simpleName}.sorted.bam \
          M=${$sorted_bam.simpleName}.MarkDuplicates.metrics.txt
@@ -127,7 +130,7 @@ process FEATURECOUNTS {
                   -g gene_id \
                   -a $gtf_file_ch \
                   -o featureCounts_output.txt \
-				  --ignoreDup \
+		   --ignoreDup \
                   $sorted_bam
                   
     pigz -p $task.cpus featureCounts_output.txt

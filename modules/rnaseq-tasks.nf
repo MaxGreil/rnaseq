@@ -105,8 +105,8 @@ process PICARD {
          MarkDuplicates \
          ASSUME_SORTED=true \
          I=$sorted_bam \
-         O=${$sorted_bam.simpleName}.sorted.bam \
-         M=${$sorted_bam.simpleName}.MarkDuplicates.metrics.txt
+         O=${sorted_bam.simpleName}.sorted.bam \
+         M=${sorted_bam.simpleName}.MarkDuplicates.metrics.txt
   """
 
 }

@@ -143,7 +143,7 @@ process FEATURECOUNTS {
                   -g gene_id \
                   -a $gtf_file_ch \
                   -o featureCounts_output.txt \
-				  --ignoreDup \
+                  --ignoreDup \
                   $sorted_bam
                   
     pigz -p $task.cpus featureCounts_output.txt

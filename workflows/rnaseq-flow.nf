@@ -57,13 +57,15 @@ workflow rnaseqFlow {
 
       FEATURECOUNTS(gtf_file_ch, PICARD.out.bam.collect())
 
-      PRESEQ(SAMTOOLS.out.qc)
+      PRESEQ(PICARD.out.qc)
 
       UNCOMPRESS_BED(bed_file_ch)
 
-      RSEQC(UNCOMPRESS_BED.out.first(), SAMTOOLS.out.qc)
+      RSEQC(UNCOMPRESS_BED.out.first(), PICARD.out.qc)
+      
+      // missing visualization: bam -> bedgraph -> bigwig 
 
-      FASTQC(SAMTOOLS.out.bam)
+      FASTQC(PICARD.out.bam)
 
       MULTIQC(HISAT2_TO_BAM.out.log.collect(), PICARD.out.metrics.collect(), FASTQC.out.collect(), SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), RSEQC.out.collect())
 

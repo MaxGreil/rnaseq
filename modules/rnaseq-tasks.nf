@@ -58,10 +58,8 @@ process HISAT2_TO_BAM {
 }
 
 process SAMTOOLS {
-  publishDir "${params.outdir}/${meta}", pattern: '*.sorted.bam', mode: 'copy'
   publishDir "${params.outdir}/${meta}", pattern: '*.sorted.bam.flagstat', mode: 'copy'
-  publishDir "${params.outdir}/${meta}", pattern: '*.sorted.bam.bai', mode: 'copy'
-
+  
   tag "$meta"
   
   input:
@@ -70,19 +68,19 @@ process SAMTOOLS {
   output:
   path("*.sorted.bam"), emit: bam
   path("*.sorted.bam.flagstat"), emit: flagstat
-  tuple path("*.sorted.bam"), path("*.sorted.bam.bai"), emit: qc
   
   script:
   """
   samtools sort -@ ${task.cpus} $bam > ${meta}.sorted.bam
   samtools flagstat ${meta}.sorted.bam > ${meta}.sorted.bam.flagstat
-  samtools index ${meta}.sorted.bam ${meta}.sorted.bam.bai
   """
 
 }
 
 process PICARD {
   publishDir "${params.outdir}/${sorted_bam.simpleName}", pattern: '*.metrics.txt', mode: 'copy'
+  publishDir "${params.outdir}/${sorted_bam.simpleName}", pattern: '*.sorted.md.bam', mode: 'copy'
+  publishDir "${params.outdir}/${sorted_bam.simpleName}", pattern: '*.sorted.md.bai', mode: 'copy'
   
   tag "$sorted_bam.simpleName"
 
@@ -90,8 +88,9 @@ process PICARD {
   path(sorted_bam)
   
   output:
-  path("*.sorted.bam"), emit: bam
+  path("*.sorted.md.bam"), emit: bam
   path("*.metrics.txt"), emit: metrics
+  tuple path("*.sorted.md.bam"), path("*.sorted.md.bai"), emit: qc
   
   script:
   def avail_mem = 3
@@ -104,8 +103,9 @@ process PICARD {
   picard -Xmx${avail_mem}g \
          MarkDuplicates \
          ASSUME_SORTED=true \
+         CREATE_INDEX=true \
          I=$sorted_bam \
-         O=${sorted_bam.simpleName}.sorted.bam \
+         O=${sorted_bam.simpleName}.sorted.md.bam \
          M=${sorted_bam.simpleName}.MarkDuplicates.metrics.txt
   """
 
@@ -193,7 +193,7 @@ process UNCOMPRESS_BED {
 }
 
 process RSEQC {
-  publishDir "${params.outdir}/${sorted_bam.simpleName}", pattern: "*.{txt,pdf,r,xls}", mode: 'copy'
+  publishDir "${params.outdir}/${sorted_bam.simpleName}/reseq", pattern: "*.{txt,pdf,r,xls}", mode: 'copy'
 
   tag "$sorted_bam.simpleName"
   

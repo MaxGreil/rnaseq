@@ -15,7 +15,7 @@ Proof of concept of a RNA-Seq pipeline from reads to count matrix (including qua
 
 ### Additional necessary files
 
-These additional 3 files must be stored in folder `data`:
+If the reads to be analyzed originate from a human experiment, these additional 3 files must be stored in folder `data`:
 
 * Prebuild Hisat2 index for H. sapiens, release GRCh38
 
@@ -35,6 +35,8 @@ https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38
 http://genome.ucsc.edu/cgi-bin/hgTables
 ```
 The BED file must be stored in `*.annotation.bed.gz` file format.
+
+For the analysis of another species, the corresponding files must be downloaded.
 
 ## Table of Contents
 

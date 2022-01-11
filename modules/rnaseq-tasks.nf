@@ -153,6 +153,27 @@ process FEATURECOUNTS {
   
 }
 
+process DEEPTOOLS {
+  publishDir "${params.outdir}/${sorted_bam.simpleName}", pattern: '*.coverage.bw', mode: 'copy'
+  
+  tag "$sorted_bam.simpleName"
+  
+  input:
+  path(sorted_bam)
+  
+  output:
+  path("*.coverage.bw")
+  
+  script:
+  // generates a coverage track for IGV
+  """
+  bamCoverage -p $task.cpus \
+              -b $sorted_bam \
+              --ignoreDuplicates \
+              -o ${sorted_bam.simpleName}.coverage.bw
+  """
+}
+
 process PRESEQ {
   publishDir "${params.outdir}/${sorted_bam.simpleName}", pattern: '*.txt', mode: 'copy'
 

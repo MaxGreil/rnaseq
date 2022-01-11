@@ -1,7 +1,7 @@
 /*
  * include requires tasks
  */
-include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2_TO_BAM; SAMTOOLS; PICARD; FEATURECOUNTS; PRESEQ; UNCOMPRESS_BED; RSEQC; FASTQC; MULTIQC; } from '../modules/rnaseq-tasks.nf'
+include { UNCOMPRESS_GENOTYPE_INDEX; HISAT2_TO_BAM; SAMTOOLS; PICARD; FEATURECOUNTS; DEEPTOOLS; PRESEQ; UNCOMPRESS_BED; RSEQC; FASTQC; MULTIQC; } from '../modules/rnaseq-tasks.nf'
 
 /*
  * define the data analysis workflow
@@ -56,14 +56,14 @@ workflow rnaseqFlow {
       PICARD(SAMTOOLS.out.bam)
 
       FEATURECOUNTS(gtf_file_ch, PICARD.out.bam.collect())
+      
+      DEEPTOOLS(PICARD.out.bam)
 
       PRESEQ(PICARD.out.qc)
 
       UNCOMPRESS_BED(bed_file_ch)
 
       RSEQC(UNCOMPRESS_BED.out.first(), PICARD.out.qc)
-      
-      // missing visualization: bam -> bedgraph -> bigwig 
 
       FASTQC(PICARD.out.bam)
 

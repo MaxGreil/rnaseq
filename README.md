@@ -15,7 +15,7 @@ Proof of concept of a RNA-Seq pipeline from reads to count matrix (including qua
 
 ### Additional necessary files
 
-If the reads to be analyzed originate from a human experiment, these additional 3 files must be stored in folder `data`:
+If the reads to be analyzed originate from a human RNA-Seq experiment, these additional 3 files must be stored in folder `data`:
 
 * Prebuild Hisat2 index for H. sapiens, release GRCh38
 
@@ -36,7 +36,7 @@ http://genome.ucsc.edu/cgi-bin/hgTables
 ```
 The BED file must be stored in `*.annotation.bed.gz` file format.
 
-For the analysis of another species, the corresponding files must be downloaded.
+For the analysis of another species, the corresponding files for this organismus must be downloaded.
 
 ## Table of Contents
 
@@ -119,7 +119,8 @@ and processes data using the following steps:
 2. [samtools](http://www.htslib.org/) - create sorted BAM files from HISAT2 SAM files
 3. [picard](https://broadinstitute.github.io/picard/) - mark duplicates in sorted BAM files
 4. [featureCounts](http://subread.sourceforge.net/) - count mapped reads to genomic features (exons)
-5. [preseq](http://smithlabresearch.org/software/preseq/) -  predict and estimate the complexity of genomic sequencing library
-6. [reseqc](http://rseqc.sourceforge.net/) - comprehensive evaluation of used RNA-Seq data
-7. [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) - BAM file quality control
-8. [MultiQC](https://multiqc.info) - aggregate report, describing results of the whole pipeline
+5. [deeptools](https://deeptools.readthedocs.io/en/develop/) - create BIGWIG from BAM for IGV
+6. [preseq](http://smithlabresearch.org/software/preseq/) -  predict and estimate the complexity of genomic sequencing library
+7. [reseqc](http://rseqc.sourceforge.net/) - comprehensive evaluation of used RNA-Seq data
+8. [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) - BAM file quality control
+9. [MultiQC](https://multiqc.info) - aggregate report, describing results of the whole pipeline

@@ -57,7 +57,7 @@ workflow rnaseqFlow {
 
       FEATURECOUNTS(gtf_file_ch, PICARD.out.bam.collect())
       
-      DEEPTOOLS(PICARD.out.bam)
+      DEEPTOOLS(PICARD.out.qc)
 
       PRESEQ(PICARD.out.qc)
 
@@ -65,7 +65,7 @@ workflow rnaseqFlow {
 
       RSEQC(UNCOMPRESS_BED.out.first(), PICARD.out.qc)
 
-      FASTQC(PICARD.out.bam)
+      FASTQC(PICARD.out.qc)
 
       MULTIQC(HISAT2_TO_BAM.out.log.collect(), PICARD.out.metrics.collect(), FASTQC.out.collect(), SAMTOOLS.out.flagstat.collect(), PRESEQ.out.collect(), RSEQC.out.collect())
 

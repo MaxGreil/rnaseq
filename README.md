@@ -8,7 +8,6 @@ Proof of concept of a RNA-Seq pipeline from reads to count matrix (including qua
 * [Java](https://openjdk.java.net) version 8
 * [Docker](https://docs.docker.com/engine/install/) engine 1.10.x (or later)
 
-
 ### Necessary files
 
 * Reads to be mapped must be stored in compressed `.fastq.gz` file format in folder `data`
@@ -46,6 +45,8 @@ For the analysis of another species, the corresponding files for this organismus
 * [Documentation](#Documentation)
 
 ## Quick start
+
+Because this pipeline uses HISAT2 as the alignment program for mapping reads, this pipeline is for short reads only! 
 
 Example run:
 ```

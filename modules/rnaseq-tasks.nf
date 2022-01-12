@@ -159,7 +159,7 @@ process DEEPTOOLS {
   tag "$sorted_bam.simpleName"
   
   input:
-  path(sorted_bam)
+  tuple path(sorted_bam), path(sorted_bam_bai)
   
   output:
   path("*.coverage.bw")
@@ -247,7 +247,7 @@ process FASTQC {
   tag "$sorted_bam.simpleName"
   
   input:
-  path(sorted_bam)
+  tuple path(sorted_bam), path(sorted_bam_bai)
     
   output:
   path('*_fastqc.{zip,html,txt}')
